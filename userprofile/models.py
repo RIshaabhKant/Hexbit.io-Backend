@@ -16,14 +16,10 @@ class UserProfileManager(BaseUserManager):
         return user
     
     def create_user(self, email, profile_id, mobile, country, name, password=None, is_staff=True, is_active=True, is_superuser=False):
-        # extra_fields.setdefault('is_staff', False)
-        # extra_fields.setdefault('is_superuser', False)
+        
         return self._create_user(email, password, profile_id=profile_id, mobile=mobile, country=country, name=name, is_staff=is_staff, is_active=is_active, is_superuser= is_superuser)
     
     def create_superuser(self, email, password, profile_id, mobile, country, name,is_staff=True, is_active=True, is_superuser=True):
-        # extra_fields.setdefault('is_staff', True)
-        # extra_fields.setdefault('is_superuser', True)
-        # extra_fields.setdefault('is_active', True)
         if is_staff is not True:
             raise ValueError(
                 'Superuser must be a staff'
