@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 
 from shop.models import Shop
+from userprofile.models import UserProfile
 
 
 #Global Constants
@@ -37,15 +38,19 @@ def getdataFromRequest(request):
 def getShops(request):
     ''' API to get shops from profilId '''
 
+    #TODO: Check for authenticated request 
+    #TODO: Move profile_id from request body to header 
+
     data = getdataFromRequest(request)
     
     if not data.__contains__(PROFILE_ID):
         return Response({'message': FAIL}, 400)
     
-    if not Shop.object.filter(profileId=data[PROFILE_ID]).exists():
-        return Response({'message': FAIL}, 400)
     
-    shops = Shop.object.filter(profileId=data[PROFILE_ID]).values()
+    if not UserProfile.objects.filter(pk=data[PROFILE_ID]).exists():
+        return Response({'message': FAIL}, 404)
+    
+    shops = Shop.object.filter(userProfile_id=data[PROFILE_ID]).values()
 
     return Response({'message': SUCESS, 'shops': shops}, 200)
 
@@ -55,18 +60,27 @@ def getShops(request):
 def createShop(request):
     ''' API to create shop '''
 
+    #TODO: Check for authenticated reques
+    #TODO: Move profile_id from request body to header 
+
     data = getdataFromRequest(request)
 
     if not data.__contains__(PROFILE_ID) or not data.__contains__(NAME):
         return Response({'message': FAIL}, 400)
     
-    shop = Shop.object.create_shop(profileId=data[PROFILE_ID], name=data[NAME])
+    if not UserProfile.objects.filter(pk=data[PROFILE_ID]).exists():
+        return Response({'message': FAIL}, 404)
+
+    shop = Shop.object.create_shop(userProfile_id=data[PROFILE_ID], name=data[NAME])
 
     return Response({'message': SUCESS, 'shops': shop.name}, 200)
 
 @api_view(['PUT'])
 def updateShop(request, pk):
     ''' API to update shop '''
+
+    #TODO: Check for authenticated reques
+    #TODO: Check for authenticated user is able to update the shop
 
     if not Shop.object.filter(pk=pk).exists():
         return Response({'message': FAIL}, 400)
@@ -106,6 +120,9 @@ def updateShop(request, pk):
 @api_view(['DELETE'])
 def deleteShops(request):
     '''API to delete a existing product'''
+
+    #TODO: Check for authenticated reques
+    #TODO: Check for authenticated user is able to delete the shop
 
     data = getdataFromRequest(request)
 

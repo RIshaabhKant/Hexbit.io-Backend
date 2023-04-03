@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 
 from product.models import Product
+from shop.models import Shop
 
 #Global Constants
 NAME = 'name'
@@ -33,6 +34,9 @@ def getdataFromRequest(request):
 def getProducts(request):
     '''API to get the product by either shopId or Name or both'''
 
+    #TODO: Check for authenticated request
+    #TODO: Check for authenticated user is able to view the products
+
     data = getdataFromRequest(request)
 
     if not data.get(NAME) and not data.get(SHOP_ID):
@@ -42,11 +46,11 @@ def getProducts(request):
     products = []
 
     if data.get(NAME) and data.get(SHOP_ID):
-        products = Product.object.filter(name=data[NAME], shopId=data[SHOP_ID]).values()
+        products = Product.object.filter(name=data[NAME], shop_id=data[SHOP_ID]).values()
     elif data.get(NAME):
         products = Product.object.filter(name=data[NAME]).values()
     else:
-        products = Product.object.filter(shopId=data[SHOP_ID]).values()
+        products = Product.object.filter(shop_id=data[SHOP_ID]).values()
     
 
     return Response({'message': SUCESS, 'products': products}, 200)
@@ -54,6 +58,9 @@ def getProducts(request):
 @api_view(['POST'])
 def postProducts(request):
     '''API to create a new product'''
+
+    #TODO: Check for authenticated request
+    #TODO: Check for authenticated user is able to post the products
 
     data = getdataFromRequest(request)
 
@@ -66,14 +73,21 @@ def postProducts(request):
         if not product.__contains__(NAME) or not product.__contains__(SHOP_ID) or not product.__contains__(SKU) or not product.__contains__(PRICE) or not product.__contains__(DESCRIPTION):
             return Response({'message': FAIL}, 400)
         
-        Product.object.create_product(name=product[NAME], shopId=product[SHOP_ID], sku=product[SKU], price=product[PRICE], description=product[DESCRIPTION])
+        if not Shop.object.filter(pk=product[SHOP_ID]).exists():
+            return Response({'message': FAIL}, 404)
+
+    for product in products:
+        Product.object.create_product(name=product[NAME], shop_id=product[SHOP_ID], sku=product[SKU], price=product[PRICE], description=product[DESCRIPTION])
     
-    return Response({'message': SUCESS, 'products_add': products}, 200)
+    return Response({'message': SUCESS}, 200)
 
 
 @api_view(['PUT'])
 def updateProduct(request, pk):
     '''API to update a existing product'''
+
+    #TODO: Check for authenticated request
+    #TODO: Check for authenticated user is able to update the products
 
     if not Product.object.filter(pk=pk).exists():
         return Response({'message': FAIL}, 400)
@@ -110,6 +124,9 @@ def updateProduct(request, pk):
 @api_view(['DELETE'])
 def deleteProducts(request):
     '''API to delete a existing product'''
+
+    #TODO: Check for authenticated request
+    #TODO: Check for authenticated user is able to delete the products
 
     data = getdataFromRequest(request)
 
