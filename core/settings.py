@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+#TODO: Make secret key value an enviroment variable
 SECRET_KEY = 'django-insecure-1e62wh5t-ruupa8y4oaxyx=9n%xwo&ay(m^ddet0k1fd$lob4w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -38,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 
     'userprofile',
     'shop',
@@ -76,13 +78,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'knox.auth.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ]
+  'DEFAULT_AUTHENTICATION_CLASSES': (
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
+  ),
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -99,11 +105,11 @@ DATABASES = {
 #DATABASES = {
 #   'default': {
 #       'ENGINE': 'django.db.backends.postgresql',
-#       'NAME': '<database_name>',
-#       'USER': '<database_username>',
-#       'PASSWORD': '<password>',
-#       'HOST': '<database_hostname_or_ip>',
-#       'PORT': '<database_port>',
+#       'NAME': 'core',
+#       'USER': 'postgres',
+#       'PASSWORD': 'Raj1&Rick0',
+#       'HOST': 'localhost',
+#       'PORT': '5432',
 #   }
 #}
 

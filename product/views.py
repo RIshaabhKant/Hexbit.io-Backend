@@ -1,12 +1,17 @@
 import json
 
 
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 
 from product.models import Product
 from shop.models import Shop
+from userprofile.models import UserProfile
+
+
+from common.utility.authentication_service import get_user_for_request
 
 #Global Constants
 NAME = 'name'
@@ -23,46 +28,35 @@ COLOUR = 'colour'
 UNIT_WEIGHT = 'unitWeight'
 IDS = 'ids'
 
-#Helper Function
-def getdataFromRequest(request):
-    body = request.body
-    return json.loads(body)
-
 
 #API Functions
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def getProducts(request):
     '''API to get the product by either shopId or Name or both'''
 
-    #TODO: Check for authenticated request
-    #TODO: Check for authenticated user is able to view the products
+    user = get_user_for_request(request=request)
 
-    data = getdataFromRequest(request)
-
-    if not data.get(NAME) and not data.get(SHOP_ID):
-        return Response({'message': FAIL}, 400)
-    
+    data = request.data
 
     products = []
 
-    if data.get(NAME) and data.get(SHOP_ID):
-        products = Product.object.filter(name=data[NAME], shop_id=data[SHOP_ID]).values()
-    elif data.get(NAME):
-        products = Product.object.filter(name=data[NAME]).values()
+    if data.__contains__(NAME):
+        products = Product.object.filter(name=data[NAME], shop__userProfile=user).values()
     else:
-        products = Product.object.filter(shop_id=data[SHOP_ID]).values()
+        products = Product.object.filter(shop__userProfile=user).values()
     
 
     return Response({'message': SUCESS, 'products': products}, 200)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def postProducts(request):
     '''API to create a new product'''
 
-    #TODO: Check for authenticated request
-    #TODO: Check for authenticated user is able to post the products
+    user = get_user_for_request(request=request)
 
-    data = getdataFromRequest(request)
+    data = request.data
 
     if not data.__contains__('products'):
         return Response({'message': FAIL}, 400)
@@ -73,7 +67,7 @@ def postProducts(request):
         if not product.__contains__(NAME) or not product.__contains__(SHOP_ID) or not product.__contains__(SKU) or not product.__contains__(PRICE) or not product.__contains__(DESCRIPTION):
             return Response({'message': FAIL}, 400)
         
-        if not Shop.object.filter(pk=product[SHOP_ID]).exists():
+        if not Shop.object.filter(pk=product[SHOP_ID], userProfile=user).exists():
             return Response({'message': FAIL}, 404)
 
     for product in products:
@@ -83,17 +77,18 @@ def postProducts(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def updateProduct(request, pk):
     '''API to update a existing product'''
 
-    #TODO: Check for authenticated request
-    #TODO: Check for authenticated user is able to update the products
+    user = get_user_for_request(request=request)
+    data = request.data
 
-    if not Product.object.filter(pk=pk).exists():
-        return Response({'message': FAIL}, 400)
+    if not Product.object.filter(pk=pk, shop__userProfile=user).exists():
+        return Response({'message': FAIL}, 404)
     
-    product = Product.object.get(pk=pk)
-    data = getdataFromRequest(request)
+    
+    product = Product.object.get(pk=pk, shop__userProfile=user)
 
     if data.__contains__(NAME):
         product.name = data[NAME]
@@ -122,13 +117,12 @@ def updateProduct(request, pk):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def deleteProducts(request):
     '''API to delete a existing product'''
 
-    #TODO: Check for authenticated request
-    #TODO: Check for authenticated user is able to delete the products
-
-    data = getdataFromRequest(request)
+    user = get_user_for_request(request=request)
+    data = request.data
 
     if not data.__contains__(IDS):
         return Response({'message': FAIL}, 400)
@@ -136,9 +130,9 @@ def deleteProducts(request):
     products = []
 
     for id in data[IDS]:
-        if not Product.object.filter(pk=id).exists():
-            return Response({'message': FAIL}, 400)
-        products.append(Product.object.get(pk=id))
+        if not Product.object.filter(pk=id, shop__userProfile=user).exists():
+            return Response({'message': FAIL}, 404)
+        products.append(Product.object.get(pk=id, shop__userProfile=user))
 
     
     for product in products:

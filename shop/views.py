@@ -1,12 +1,13 @@
 import json
 
-
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 
 from shop.models import Shop
-from userprofile.models import UserProfile
+
+from common.utility.authentication_service import get_user_for_request
 
 
 #Global Constants
@@ -27,66 +28,48 @@ PHONE = 'phone'
 EMAIL = 'email'
 
 
-#Helper Function
-def getdataFromRequest(request):
-    body = request.body
-    return json.loads(body)
-
-
 #API Functions
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def getShops(request):
     ''' API to get shops from profilId '''
 
-    #TODO: Check for authenticated request 
-    #TODO: Move profile_id from request body to header 
-
-    data = getdataFromRequest(request)
+    user = get_user_for_request(request=request)
     
-    if not data.__contains__(PROFILE_ID):
-        return Response({'message': FAIL}, 400)
-    
-    
-    if not UserProfile.objects.filter(pk=data[PROFILE_ID]).exists():
-        return Response({'message': FAIL}, 404)
-    
-    shops = Shop.object.filter(userProfile_id=data[PROFILE_ID]).values()
+    shops = Shop.object.filter(userProfile=user).values()
 
     return Response({'message': SUCESS, 'shops': shops}, 200)
 
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def createShop(request):
     ''' API to create shop '''
 
-    #TODO: Check for authenticated reques
-    #TODO: Move profile_id from request body to header 
+    data = request.data
 
-    data = getdataFromRequest(request)
-
-    if not data.__contains__(PROFILE_ID) or not data.__contains__(NAME):
+    if not data.__contains__(NAME):
         return Response({'message': FAIL}, 400)
     
-    if not UserProfile.objects.filter(pk=data[PROFILE_ID]).exists():
-        return Response({'message': FAIL}, 404)
+    user = get_user_for_request(request=request)
 
-    shop = Shop.object.create_shop(userProfile_id=data[PROFILE_ID], name=data[NAME])
+    shop = Shop.object.create_shop(userProfile_id=user.id, name=data[NAME])
 
     return Response({'message': SUCESS, 'shops': shop.name}, 200)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def updateShop(request, pk):
     ''' API to update shop '''
 
-    #TODO: Check for authenticated reques
-    #TODO: Check for authenticated user is able to update the shop
+    user = get_user_for_request(request=request)
 
-    if not Shop.object.filter(pk=pk).exists():
-        return Response({'message': FAIL}, 400)
+    if not Shop.object.filter(pk=pk, userProfile=user).exists():
+        return Response({'message': FAIL}, 404)
     
-    shop = Shop.object.get(pk=pk)
-    data = getdataFromRequest(request)
+    shop = Shop.object.get(pk=pk, userProfile=user)
+    data = request.data
 
     if data.__contains__(NAME):
         shop.name = data[NAME]
@@ -118,13 +101,13 @@ def updateShop(request, pk):
     return Response({'message': SUCESS}, 200)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def deleteShops(request):
     '''API to delete a existing product'''
 
-    #TODO: Check for authenticated reques
-    #TODO: Check for authenticated user is able to delete the shop
+    user = get_user_for_request(request=request)
 
-    data = getdataFromRequest(request)
+    data = request.data
 
     if not data.__contains__(IDS):
         return Response({'message': FAIL}, 400)
@@ -132,9 +115,9 @@ def deleteShops(request):
     products = []
 
     for id in data[IDS]:
-        if not Shop.object.filter(pk=id).exists():
+        if not Shop.object.filter(pk=id, userProfile=user).exists():
             return Response({'message': FAIL}, 400)
-        products.append(Shop.object.get(pk=id))
+        products.append(Shop.object.get(pk=id, userProfile=user))
 
     
     for product in products:
