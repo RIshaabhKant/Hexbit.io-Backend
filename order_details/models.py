@@ -2,13 +2,16 @@ from django.db import models
 from datetime import datetime
 
 
+from product.models import Product
+
+
 class OrderDetailsManager(models.Manager):
     """Manager for Product"""
 
-    def create_order_details(self, productId: int, orderId: int, price: int, quantity: int, 
+    def create_order_details(self, product_id: int, orderId: int, price: int, quantity: int, 
                        total: int, discount=0):
         
-        orderDetails = self.model(productId=productId, orderId=orderId, price=price,
+        orderDetails = self.model(product_id=product_id, orderId=orderId, price=price,
                                   quantity=quantity, discount=discount, total=total)
         
         self.save(orderDetails=orderDetails)
@@ -21,7 +24,7 @@ class OrderDetailsManager(models.Manager):
 class OrderDetails(models.Model):
     '''Database model for order details in the system'''
 
-    productId = models.BigIntegerField(null=False) #TODO: Change to ForeignKey
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     orderId = models.BigIntegerField(null=False) #TODO: Change to ForeignKey
 
     price = models.BigIntegerField(null=False)
