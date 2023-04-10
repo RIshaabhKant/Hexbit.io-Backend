@@ -3,15 +3,16 @@ from datetime import datetime
 
 
 from product.models import Product
+from order.models import Order
 
 
 class OrderDetailsManager(models.Manager):
     """Manager for Product"""
 
-    def create_order_details(self, product_id: int, orderId: int, price: int, quantity: int, 
+    def create_order_details(self, product_id: int, order_id: int, price: int, quantity: int, 
                        total: int, discount=0):
         
-        orderDetails = self.model(product_id=product_id, orderId=orderId, price=price,
+        orderDetails = self.model(product_id=product_id, order_id=order_id, price=price,
                                   quantity=quantity, discount=discount, total=total)
         
         self.save(orderDetails=orderDetails)
@@ -25,7 +26,7 @@ class OrderDetails(models.Model):
     '''Database model for order details in the system'''
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    orderId = models.BigIntegerField(null=False) #TODO: Change to ForeignKey
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
 
     price = models.BigIntegerField(null=False)
     quantity = models.BigIntegerField(null=False)
@@ -37,9 +38,9 @@ class OrderDetails(models.Model):
 
     object = OrderDetailsManager()
 
-    REQUIRED_FIELD = ['productId', 'orderID', 'price', 'quantity', 'total', 'billDate']
+    REQUIRED_FIELD = ['product', 'order', 'price', 'quantity', 'total', 'billDate']
 
     def __str__(self) -> str:
-        orderDetailsVis = f"""productId: {self.productId} \n price: {self.price} \n
+        orderDetailsVis = f"""product_id: {self.product.id} \n price: {self.price} \n
                         quantity: {self.quantity} \n billDate: {self.billDate} \n"""
         return orderDetailsVis

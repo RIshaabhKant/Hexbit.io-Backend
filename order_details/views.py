@@ -1,11 +1,12 @@
 from datetime import datetime
-
+import json
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from order_details.models import OrderDetails
+from order_details.serializers import OrderDetailsSerializer
 
 from common.utility.authentication_service import get_user_for_request
 
@@ -20,12 +21,15 @@ FAIL = 'Fail'
 def getOrders(request, pk):
 
     user = get_user_for_request(request)
-    orders = {}
+    order_details = {}
 
     if OrderDetails.object.filter(product_id=pk, product__shop__userProfile=user).exists():
-        orders = OrderDetails.object.filter(product_id=pk, product__shop__userProfile=user).values()    
+        _order_details = OrderDetails.object.filter(product_id=pk, product__shop__userProfile=user).all()
+        serialised_order_details = OrderDetailsSerializer(_order_details, many=True)
+        bytesString = json.dumps(serialised_order_details.data)
+        order_details = json.loads(bytesString)
 
-    return Response({'message': SUCESS, 'orders': orders})
+    return Response({'message': SUCESS, 'order_details': order_details})
 
 
 @api_view(['PUT'])
