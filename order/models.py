@@ -1,6 +1,9 @@
 from django.db import models
 from datetime import datetime
 
+
+from payment.models import Payment
+
 class OrderManager(models.Manager):
     """Manager for Order"""
 
@@ -22,7 +25,7 @@ class Order(models.Model):
     '''Database model for orders in the system'''
 
     customer_id = models.BigIntegerField(unique=True) #TODO: Change to ForeignKey for Customer
-    payment_id = models.BigIntegerField(unique=True) #TODO: Change to ForeignKey for Payment
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
     shipper_id = models.BigIntegerField(unique=True) #TODO: Change to ForeignKey for Shipper 
 
     orderDate = models.DateField(auto_now_add=True, blank=True)
