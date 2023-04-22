@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'order_details',
     'order',
     'payment',
+    'shipper',
 ]
 
 MIDDLEWARE = [

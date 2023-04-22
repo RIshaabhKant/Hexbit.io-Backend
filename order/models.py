@@ -3,6 +3,7 @@ from datetime import datetime
 
 
 from payment.models import Payment
+from shipper.models import Shipper
 
 class OrderManager(models.Manager):
     """Manager for Order"""
@@ -26,7 +27,7 @@ class Order(models.Model):
 
     customer_id = models.BigIntegerField(unique=True) #TODO: Change to ForeignKey for Customer
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
-    shipper_id = models.BigIntegerField(unique=True) #TODO: Change to ForeignKey for Shipper 
+    shipper = models.ForeignKey(Shipper, on_delete=models.CASCADE, null=True)
 
     orderDate = models.DateField(auto_now_add=True, blank=True)
     timestamp =  models.TimeField(auto_now_add=True, blank=True)

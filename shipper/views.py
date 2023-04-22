@@ -72,10 +72,10 @@ def createShipper(request):
         
         if shipper[TYPE] == 0:
             #Small Scale Seller
-            if not shipper.__contains__(TOTALCHECKPOINTS) or not shipper.__contains__(CURRENTCHECKPOINT) or not len(shipper[CHECKPOINT]) == shipper[TOTALCHECKPOINTS]:
+            if not shipper.__contains__(TOTALCHECKPOINTS) or not shipper.__contains__(CURRENTCHECKPOINT) or not shipper.__contains__(CHECKPOINT):
                 return Response({'message': FAIL}, 400)
             
-            if shipper[TOTALCHECKPOINTS]<=0 or shipper[CURRENTCHECKPOINT]<=0 or not shipper[TOTALCHECKPOINTS] == len(shipper[CURRENTCHECKPOINT]):
+            if shipper[TOTALCHECKPOINTS]<=0 or shipper[CURRENTCHECKPOINT]<=0 or not len(shipper[CHECKPOINT]) == shipper[TOTALCHECKPOINTS]:
                 return Response({'message': FAIL}, 400)
             
             newshipper = Shipper.object.create_shipper(type=shipper[TYPE], companyName=shipper[COMPANYNAME], checkPoints=shipper[CHECKPOINT], totalCheckPoints=shipper[TOTALCHECKPOINTS], currentCheckPoint=shipper[CURRENTCHECKPOINT])
